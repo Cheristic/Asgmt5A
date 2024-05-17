@@ -12,21 +12,61 @@
             .tab1 {
                 tab-size: 12;
             }
+            .wrapper {
+                position: relative;
+                width: 640px;
+                height: 480px;
+            }
+
+            .wrapper canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
         </style>
     </head>
-
     <body>
-        <canvas id="c" width="800" height="800">
-            Please use a browser that supports "canvas"
-        </canvas>
+        <div class="wrapper">
+            <canvas id="c" width="800" height="800">
+                Please use a browser that supports "canvas"
+            </canvas>
+            <canvas id="ui" width="800" height="800">
+            </canvas>
+        </div>
         <script src="lib/webgl-utils.js"></script>
         <script src="lib/webgl-debug.js"></script>
         <script src="lib/cuon-utils.js"></script>
         <script src="lib/cuon-matrix.js"></script>
-        <script type="module" src="./asg5.js"></script>    
+
+        <script type="importmap">
+            {
+              "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.0/examples/jsm/"
+              }
+            }
+        </script>
         
-        <h2>"Watch me pop off..."</h2>
-        <pre class="tab1">          -Ring Toss Legend, Burnie Brown</pre>
+        <script type="x-shader/x-vertex" id="vertexShader" src="shaders/vertex.vert"></script>
+        <script type="x-shader/x-fragment" id="fragmentShader" src="shaders/fragment.frag"></script>
+        <script src="scripts/Utility/GameManager.js"></script>
+        <script src="scripts/Utility/MainMenu.js"></script>
+        <script src="scripts/Utility/HUDManger.js"></script>
+        <script src="scripts/Utility/Camera.js"></script>
+        <script src="scripts/Utility/World.js"></script>
+        <script src="scripts/MiniGames/MiniGame.js"></script>
+        <script src="scripts/MiniGames/Test1.js"></script>
+        <script src="scripts/MiniGames/Test2.js"></script>
+        <script src="asg5.js"></script>  
+        <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19"></script>
+  
+        <script type="module">
+            import * as THREE from "three"
+            import { TextGeometry} from 'three/addons/geometries/TextGeometry.js';
+            import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+
+            main(THREE, TextGeometry, FontLoader);
+        </script>
 
     </body>
 </html>
