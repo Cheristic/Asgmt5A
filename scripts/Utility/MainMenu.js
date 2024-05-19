@@ -14,10 +14,15 @@ class MainMenu {
             color: 0xD9D924
         })
         const sphere1 = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        sphere1.position.set(0, -6, -2);
+        sphere1.position.set(2, -6, -2);
         sphere1.receiveShadow = true;
         sphere1.castShadow = true;
         w_Scene.add(sphere1);
+        const sphere2 = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere2.position.set(-2, -6, -2);
+        sphere2.receiveShadow = true;
+        sphere2.castShadow = true;
+        w_Scene.add(sphere2);
 
         var boxIlluminator = new THREE.PointLight(0xffffff, 100, 50);
         boxIlluminator.position.set(0, 0, 12);
