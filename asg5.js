@@ -10,13 +10,20 @@ let THREE;
 let TextGeometry;
 let FontLoader;
 let GUI;
+let TextSprite;
+
+let boxVertex;
+let boxFragment;
 
 
-function main(three, textgeo, fontload) {
+function main(three, textgeo, fontload, bVert, bFrag, txtSpr) {
   THREE = three;
   TextGeometry = textgeo;
   FontLoader = fontload;
   GUI = lil.GUI;
+  boxVertex = bVert;
+  boxFragment = bFrag;
+  TextSprite = txtSpr;
   setUpWebGL();
   setUpScene();
   
@@ -33,6 +40,7 @@ function setUpWebGL() {
   renderer.setSize(canvas.width, canvas.height);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.localClippingEnabled = true;
 }
 
 function setUpScene() {
@@ -40,10 +48,11 @@ function setUpScene() {
 
   w_Scene = new THREE.Scene();
 
-  hud = new HUDManager();
-
   gameManager = new GameManager();
   gameManager.buildScreens();
+
+  hud = new HUDManager();
+  
   gameManager.startScene();
 }
 

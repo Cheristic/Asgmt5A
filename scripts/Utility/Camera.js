@@ -7,6 +7,8 @@ class Camera {
         this.lerpTime = 3;
         this.elapsedTime = 100;
         this.isLerping = false;
+
+        this.triggerCameraDone = new Event("OnCameraDone");
     }
 
     lerpToScreen(targetScreen) {
@@ -29,8 +31,10 @@ class Camera {
             }
             else {
                 this.isLerping = false;
+                this.elapsedTime = 0;
                 w_Camera.position.set(this.targetScreen[0], this.targetScreen[1], this.targetScreen[2]);
                 this.focusingOnScreen = this.targetScreen;
+                document.dispatchEvent(this.triggerCameraDone);
             }
         }   
     }

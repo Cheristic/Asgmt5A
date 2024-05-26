@@ -6,12 +6,39 @@ class GameManager {
 
         this.MainMenu = new MainMenu([0, 0, 20], [0, 0, 0]);
         this.minigames = [
-            new Test1([150, 0, 20], [150, 0, 0], 0),
-            new Test2([75, 150, 20], [75, 150, 0], 1)
+            new RGB([150, 0, 20], [150, 0, 0], 0),
+            new Test2([75, 150, 20], [75, 150, 0], 1),
         ];
 
+        //this.currentScreen = this.minigames[0];
+
         this.currentScreen = this.MainMenu;
+        //this.cameraObject = new Camera(this.minigames[0].camPos);
         this.cameraObject = new Camera(this.MainMenu.camPos);
+
+        this.gameRunning = false;
+        this.onGameOver = false;
+        this.triggerStartGame = new Event("OnStartGame");
+        this.triggerMiniGameEvent = new Event("OnStartMiniGame"); // called by mini games
+        this.triggerGameOver = new Event("OnGameOver");
+        this.miniGameRunning = false;
+
+
+        let buttonMap = new THREE.TextureLoader().load('resources/minigames/game-button.png');
+        buttonMap.magFilter = THREE.NearestFilter;
+        buttonMap.repeat.set(1/2, 1);
+        let buttonMaterial = new THREE.SpriteMaterial({map: buttonMap});
+        let button = {
+            sprite: new THREE.Sprite(buttonMaterial),
+            spriteIndex: 0,
+            spriteCount: 2,
+            framesTilSwap: 3,
+            map: buttonMap
+        }
+        button.sprite.scale.set(6, 3, 0)
+        this.generalAssets = {
+            button: button
+        };
     }
 
     buildScreens() {
@@ -22,43 +49,53 @@ class GameManager {
     }
 
     startScene() {
-        this.currentScreen.enterScreen();
+        this.currentScreen.onReady();
         document.addEventListener("keydown", function(ev) {keysHeldState[ev.keyCode || ev.which] = true;}, true);
         document.addEventListener("keyup", function(ev) {keysHeldState[ev.keyCode || ev.which] = false;}, true);
     }
 
     update() {
         this.cameraObject.update();
-
-
-        // if (!this.cameraObject.isLerping) {
-        //     if (keysHeldState[51] && this.currentScreen != this.Test1) {
-        //         this.currentScreen.exitScreen();
-        //         this.cameraObject.lerpToScreen(this.Test1.camPos);
-        //         this.currentScreen = this.Test1;
-        //         this.Test1.enterScreen();
-        //     } else if (keysHeldState[49] && this.currentScreen != this.MainMenu) {
-        //         this.currentScreen.exitScreen();
-        //         this.cameraObject.lerpToScreen(this.MainMenu.camPos);
-        //         this.currentScreen = this.MainMenu;
-        //         this.MainMenu.enterScreen();
-        //     } else if (keysHeldState[50] && this.currentScreen != this.Test2) {
-        //         this.currentScreen.exitScreen();
-        //         this.cameraObject.lerpToScreen(this.Test2.camPos);
-        //         this.currentScreen = this.Test2;
-        //         this.Test2.enterScreen();
-        //     }
-        // }
-
         this.currentScreen.update();
     }
 
     startGame() {
-        this.chooseScreen();
+        this.gameRunning = true;
+        this.onGameOver = false;
+        document.dispatchEvent(this.triggerStartGame);
+        hud.startGame(this.chooseScreen());
+        document.addEventListener("OnCameraDone", this.startMiniGame);
     }
+
+    startMiniGame() {
+        gameManager.miniGameRunning = true;
+        gameManager.currentScreen.startGame();
+    }
+
     winScreen() {
-        this.chooseScreen();
-        hud.scorePoint();
+        this.miniGameRunning = false;
+        hud.winGame();
+    }
+
+    readyForNextScreen() {
+        hud.goToNextScreen(this.chooseScreen());
+    }
+
+    loseScreen() {
+        if (!this.miniGameRunning) return;
+        this.gameRunning = false;
+        this.miniGameRunning = false;
+        this.onGameOver = true;
+        document.dispatchEvent(this.triggerGameOver);
+        this.currentScreen.loseScreen();
+        document.removeEventListener("OnCameraDone", this.startMiniGame);
+    }
+
+    restartBackToMain() {
+        this.currentScreen.exitScreen();
+        this.currentScreen = this.MainMenu;
+        this.cameraObject.lerpToScreen(this.currentScreen.camPos);
+        this.currentScreen.enterScreen();
     }
 
     chooseScreen() {
@@ -67,8 +104,10 @@ class GameManager {
         do {
             next_minigame = this.minigames[Math.floor(Math.random()*this.minigames.length)];
         } while (next_minigame.minigameIndex == this.currentScreen.minigameIndex)
+            //next_minigame = this.minigames[0];
         this.cameraObject.lerpToScreen(next_minigame.camPos);
         this.currentScreen = next_minigame;
         this.currentScreen.enterScreen();
+        return this.currentScreen;
     }
 }

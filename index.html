@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>Master ring toss player</title>
+        <title>160-Ware</title>
         <style>
             body {text-align:left;}
             h2 {
@@ -38,6 +38,7 @@
         <script src="lib/cuon-utils.js"></script>
         <script src="lib/cuon-matrix.js"></script>
 
+
         <script type="importmap">
             {
               "imports": {
@@ -47,26 +48,29 @@
             }
         </script>
         
-        <script type="x-shader/x-vertex" id="vertexShader" src="shaders/vertex.vert"></script>
-        <script type="x-shader/x-fragment" id="fragmentShader" src="shaders/fragment.frag"></script>
         <script src="scripts/Utility/GameManager.js"></script>
         <script src="scripts/Utility/MainMenu.js"></script>
         <script src="scripts/Utility/HUDManger.js"></script>
         <script src="scripts/Utility/Camera.js"></script>
         <script src="scripts/Utility/World.js"></script>
         <script src="scripts/MiniGames/MiniGame.js"></script>
-        <script src="scripts/MiniGames/Test1.js"></script>
+        <script src="scripts/MiniGames/RGBGame.js"></script>
+        <script src="scripts/MiniGames/NearFarGame.js"></script>
         <script src="scripts/MiniGames/Test2.js"></script>
         <script src="asg5.js"></script>  
         <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19"></script>
-  
+
         <script type="module">
             import * as THREE from "three"
             import { TextGeometry} from 'three/addons/geometries/TextGeometry.js';
             import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+            import boxVertex from '../../shaders/boxvertex.js';
+            import boxFragment from '../../shaders/boxfragment.js';
 
-            main(THREE, TextGeometry, FontLoader);
+            main(THREE, TextGeometry, FontLoader, boxVertex, boxFragment, TextSprite);
         </script>
+
+
 
     </body>
 </html>

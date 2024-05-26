@@ -1,4 +1,3 @@
-
 class MainMenu {
     constructor(camPos, center) {
         this.camPos = camPos;
@@ -7,22 +6,7 @@ class MainMenu {
     }
 
     buildMainMenu() {
-        gameManager.world.buildBox(new THREE.Color(0xFFDD33), this.center.position)
-
-        var sphereGeometry = new THREE.SphereGeometry(1, 32, 16);
-        var sphereMaterial = new THREE.MeshLambertMaterial({
-            color: 0xD9D924
-        })
-        const sphere1 = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        sphere1.position.set(2, -6, -2);
-        sphere1.receiveShadow = true;
-        sphere1.castShadow = true;
-        w_Scene.add(sphere1);
-        const sphere2 = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        sphere2.position.set(-2, -6, -2);
-        sphere2.receiveShadow = true;
-        sphere2.castShadow = true;
-        w_Scene.add(sphere2);
+        this.boxData = gameManager.world.buildBox(0xFFDD33, this.center.position)
 
         var boxIlluminator = new THREE.PointLight(0xffffff, 100, 50);
         boxIlluminator.position.set(0, 0, 12);
@@ -41,42 +25,96 @@ class MainMenu {
         light2.shadow.mapSize.height = 8182;
         w_Scene.add(light2);
 
-        const textLightTarget = new THREE.Object3D();
-        textLightTarget.position.set(0, -10, -1);
-        w_Scene.add(textLightTarget);
-
-        var textLight1 = new THREE.SpotLight(0xffffff, 20, 10, Math.PI/3, .3, .8);
-        textLight1.target = textLightTarget;
-        textLight1.position.set(-2, -1, -5)
-        w_Scene.add(textLight1);
-
-        var textLight2 = new THREE.SpotLight(0xffffff, 20, 10, Math.PI/3, .3, .8);
-        textLight2.target = textLightTarget;
-        textLight2.position.set(2, -1, -5)
-        w_Scene.add(textLight2);
-
         const fontLoader = new FontLoader();
-        
+    
         fontLoader.load('resources/fonts/helvetiker_bold.typeface.json', function(f) {
-            const menuText = new TextGeometry("click to start", {
+            const clickToStart = new TextGeometry("click to start", {
                 font: f,
                 size: 2,
-                depth: 15
+                depth: 18
             });
+            const title = new TextGeometry("160 - WARE", {
+                font: f,
+                size: 2,
+                depth: 3
+            });
+
+            // console.log([
+            //     THREE.ShaderLib.phong.uniforms,
+            //     {
+            //         color: {value:0x6361be}, specular: {value:0x5590b4}, shininess: {value:30}, emissive: {value:0x1a1a1a}, 
+            //         clippingPlanes: {value:gameManager.MainMenu.boxData[1]}, clipIntersection: {value:gameManager.world.clipParams}
+            //     }
+            // ])
+
+            // var customUniforms = {
+            //     color: {value: new THREE.Color(0x6361be)}, specular: {value: new THREE.Color(0x5590b4)}, shininess: {value:30}, 
+            //     emissive: {value: new THREE.Color(0x1a1a1a)}, opacity: {value: 1},   
+            // };
+
+            // //var uniforms = THREE.UniformsUtils.merge([THREE.ShaderLib.phong.uniforms, customUniforms])
+            // var uniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.phong.uniforms);
+            // console.log(uniforms);
+
+            // let define = {};
+            // define["USE_COLOR"] = "";
+
+            //let boxUniforms = Object.assign({}, phongUniforms, customUniforms);
+            
+            // var textMaterial = new THREE.ShaderMaterial({
+            //     uniforms: customUniforms,
+            //     vertexShader:THREE.ShaderLib.phong.vertexShader,
+            //     fragmentShader: THREE.ShaderLib.phong.fragmentShader,
+            //     defines: define,
+            //     clippingPlanes: gameManager.MainMenu.boxData[1], 
+            //     clipIntersection: gameManager.world.clipParams,
+            //     clipping: true,
+            //     uniformsNeedUpdate: true,
+            // });
+        
+
+
             var textMaterial = new THREE.MeshPhongMaterial( 
-                { color: 0x6361be, specular: 0x5590b4, shininess: 30, emissive: 0x1a1a1a }
+                { color: 0x6361be, specular: 0x5590b4, shininess: 30, emissive: 0x1a1a1a, 
+                    clippingPlanes: gameManager.MainMenu.boxData[1],
+                    clipIntersection: false,
+                }
             );
-            gameManager.MainMenu.clickToStart = new THREE.Mesh( menuText, textMaterial );
+
+            gameManager.MainMenu.clickToStart = new THREE.Mesh( clickToStart, textMaterial );
+            
             gameManager.MainMenu.clickToStart.position.set(-8, -1, -10);
             gameManager.MainMenu.clickToStart.castShadow = true;
             gameManager.MainMenu.clickToStart.receiveShadow = true;
             w_Scene.add(gameManager.MainMenu.clickToStart);
+            
+            
+            var titleMaterial = new THREE.MeshPhongMaterial( 
+                { color: 0xc2a3e7, specular: 0x5590b4, shininess: 15, emissive: 0x1a1a1a, 
+                    clippingPlanes: gameManager.MainMenu.boxData[1], clipIntersection: false,
+                }
+            );
+            gameManager.MainMenu.titleText = new THREE.Mesh( title, titleMaterial );
+            gameManager.MainMenu.titleText.position.set(-8, 4, -10);
+            gameManager.MainMenu.titleText.castShadow = true;
+            gameManager.MainMenu.titleText.receiveShadow = true;
+            w_Scene.add(gameManager.MainMenu.titleText);
+
+            
         })
     }
 
     enterScreen() {
-        document.addEventListener('mousemove', this.handleMouseMove, true);
-        document.addEventListener('mousedown', this.handleMouseDown, true)
+        console.log("returning to main");
+        document.addEventListener(("OnCameraDone"), this.onReady )
+        gameManager.MainMenu.clickToStart.material.color.set(0x6361be)
+    }
+
+    onReady() {
+        console.log("at main");
+        document.addEventListener('mousemove', gameManager.MainMenu.handleMouseMove);
+        document.addEventListener('mousedown', gameManager.MainMenu.handleMouseDown)
+        document.removeEventListener(("OnCameraDone"), gameManager.MainMenu.onReady )
     }
 
     handleMouseMove(event) {
@@ -103,8 +141,9 @@ class MainMenu {
     }
 
     exitScreen() {
-        document.removeEventListener('mousemove', this.handleMouseMove);
-        document.removeEventListener('mousedown', this.handleMouseDown);
+        document.removeEventListener('mousemove', gameManager.MainMenu.handleMouseMove);
+        document.removeEventListener('mousedown', gameManager.MainMenu.handleMouseDown);
+        
     }
 
     update() {

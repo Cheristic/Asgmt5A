@@ -1,10 +1,10 @@
 class Test2 extends MiniGame {
     constructor(camPos, center, index) {
-        super(camPos, center, index);
+        super(camPos, center, index, "Click the lil dot", 7);
     }
 
     buildScreen() {
-        gameManager.world.buildBox(new THREE.Color(0x23A0EF), this.center.position)
+        gameManager.world.buildBox(0x23A0EF, this.center.position)
 
         this.objects = new THREE.Group();
         w_Scene.add(this.objects);
@@ -33,8 +33,8 @@ class Test2 extends MiniGame {
     }
 
     enterScreen() {
-        document.addEventListener('mousemove', this.handleMouseMove, true);
-        document.addEventListener('mousedown', this.handleMouseDown, true)
+        document.addEventListener('mousemove', this.handleMouseMove);
+        document.addEventListener('mousedown', this.handleMouseDown)
     }
 
     handleMouseMove(event) {
@@ -56,7 +56,13 @@ class Test2 extends MiniGame {
         const intersects = hud.mouseRaycaster.intersectObject(gameManager.minigames[1].winSphere)
         if (intersects.length > 0) {
             gameManager.winScreen();
+            gameManager.readyForNextScreen();
         }
+    }
+
+    loseScreen() {
+        document.removeEventListener('mousemove', this.handleMouseMove);
+        document.removeEventListener('mousedown', this.handleMouseDown);
     }
 
     exitScreen() {
