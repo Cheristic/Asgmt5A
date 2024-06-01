@@ -15,17 +15,12 @@ let OBJLoader;
 let MTLLoader
 let TWEEN;
 
-let boxVertex;
-let boxFragment;
 
-
-function main(three, textgeo, fontload, bVert, bFrag, simp, obj, mtl, tween) {
+function main(three, textgeo, fontload, simp, obj, mtl, tween) {
   THREE = three;
   TextGeometry = textgeo;
   FontLoader = fontload;
   GUI = lil.GUI;
-  boxVertex = bVert;
-  boxFragment = bFrag;
   SimplifyModifier = simp;
   OBJLoader = obj;
   MTLLoader = mtl;

@@ -6,7 +6,7 @@
         <style>
             body {
                 text-align:left;
-                background-image: url('/resources/160-wario-Background-dark.jpg');
+                background-image: url('../../resources/160-wario-Background-dark.jpg');
                 background-repeat: repeat;
                 background-size: 50px;
             }
@@ -77,18 +77,16 @@
             import * as THREE from "three"
             import { TextGeometry} from 'three/addons/geometries/TextGeometry.js';
             import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-            import boxVertex from '../../shaders/boxvertex.js';
-            import boxFragment from '../../shaders/boxfragment.js';
             import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
             import {OBJLoader} from 'three/addons/loaders/OBJLoader.js';
             import {MTLLoader} from 'three/addons/loaders/MTLLoader.js';
             import TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/23.1.2/tween.esm.js';
 
-            main(THREE, TextGeometry, FontLoader, boxVertex, boxFragment, SimplifyModifier, OBJLoader, MTLLoader, TWEEN);
+            main(THREE, TextGeometry, FontLoader, SimplifyModifier, OBJLoader, MTLLoader, TWEEN);
         </script>
 
         <div class="logo">
-            <img src="/resources/logo.png">
+            <img src="../../resources/logo.png">
         </div>
         
 
