@@ -1,8 +1,14 @@
 class NearFarGame extends MiniGame {
     constructor(camPos, center, index) {
-        super(camPos, center, index, "What's at the dot?", 8);
+        super(camPos, center, index, "Show only Blue Balls!", 14);
         this.screenTimer = 0;
         this.screenFrameCount = 0;
+
+        this.endAnim = {
+            totalTime: 1000,
+            loseColor: new THREE.Color(0xcd2d14),
+            winColor: new THREE.Color(0x2fb117),
+        }
     }
 
     buildScreen() {
@@ -23,188 +29,151 @@ class NearFarGame extends MiniGame {
         light2.position.set(0, 9, 0)
         light2.castShadow = true;
         this.objects.add(light2);
-
-        // ### SET UP COLOR BOX ###
-        this.colorBox = {
-            colors: [
-                [0, 0, 0],
-                [1, 0, 0],
-                [0, 1, 0],
-                [0, 0, 1],
-                [1, 1, 0],
-                [0, 1, 1],
-                [1, 0, 1],
-                [1,1,1]
-            ],
-            elementaryColors: [
-                [1, 0, 0],
-                [0, 1, 0],
-                [0, 0, 1]
-            ],
-            time: 0,
-            animate: false
-        }
-        let c = this.colorBox.colors;
-        this.colorBox.vertColors = [  c[1][0],c[1][1],c[1][2],    c[0][0],c[0][1],c[0][2],  
-                            c[6][0],c[6][1],c[6][2],  c[3][0],c[3][1],c[3][2],    
-
-                            c[2][0],c[2][1],c[2][2],    c[4][0],c[4][1],c[4][2],  
-                            c[5][0],c[5][1],c[5][2],  c[7][0],c[7][1],c[7][2],
-                        
-                            c[2][0],c[2][1],c[2][2],    c[0][0],c[0][1],c[0][2],  
-                            c[4][0],c[4][1],c[4][2],  c[1][0],c[1][1],c[1][2],
-
-                            c[7][0],c[7][1],c[7][2],    c[6][0],c[6][1],c[6][2],  
-                            c[5][0],c[5][1],c[5][2],  c[3][0],c[3][1],c[3][2],
-
-                            c[4][0],c[4][1],c[4][2],    c[1][0],c[1][1],c[1][2],  
-                            c[7][0],c[7][1],c[7][2],  c[6][0],c[6][1],c[6][2],
-
-                            c[0][0],c[0][1],c[0][2],    c[2][0],c[2][1],c[2][2],  
-                            c[3][0],c[3][1],c[3][2],  c[5][0],c[5][1],c[5][2],
-                        ];
-
-        this.colorBox.colorBoxGeo = new THREE.BoxGeometry(3.3, 3.3, 3),        
         
-        this.colorBox.colorBoxGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(this.colorBox.vertColors), 3));
-        this.colorBox.colorAttribute = this.colorBox.colorBoxGeo.getAttribute('color');
-        this.colorBox.colorAttribute.needsUpdate = true;
-        let colorBoxMat = new THREE.MeshBasicMaterial({vertexColors: true, clippingPlanes: this.boxData[1],
-            clipIntersection: false, transparent: true});
-        this.colorBox.mesh = new THREE.Mesh(this.colorBox.colorBoxGeo, colorBoxMat);
-        
-        this.colorBox.mesh.rotateZ(Math.PI);
-        let distort = new THREE.Matrix4();
-        distort.makeShear(0,.1,0,0,-1.2,-1.2);
-        this.colorBox.mesh.scale.set(.9,.8, 1)
-        this.colorBox.mesh.applyMatrix4(distort)  
-        this.colorBox.mesh.rotateY(-.1);
-        this.colorBox.mesh.position.set(.2, .7, 5)
-        
-        // ###############
+        // CREATE NEAR FAR PLANES
+        let normal = new THREE.Vector3();
+        let coPoint = new THREE.Vector3();
 
+        let farPlane = new THREE.Plane();
+        normal.set(0,0,-1).applyQuaternion( this.boxData[0].children[0].quaternion);
+        coPoint.copy( this.boxData[0].children[0].position);
+        farPlane.set(normal, 21.5);
 
-        let graphSpriteMap = new THREE.TextureLoader().load('resources/minigames/rgb/rgb-graph.png');
-        graphSpriteMap.magFilter = THREE.NearestFilter;
-        graphSpriteMap.repeat.set(1/2, 1);
-        let graphSpriteMaterial = new THREE.SpriteMaterial({map: graphSpriteMap});
-        this.graph = {
-            sprite: new THREE.Sprite(graphSpriteMaterial),
-            spriteIndex: 0,
-            spriteCount: 2,
-            framesTilSwap: 3,
-            map: graphSpriteMap
-        }
-        this.graph.sprite.scale.set(13, 13, 13)
-        this.graph.sprite.position.set(0, .5, 0);
-        this.objects.add(this.graph.sprite);
+        let nearPlane = new THREE.Plane();
+        normal.set(0,0,1).applyQuaternion( this.boxData[0].children[0].quaternion);
+        coPoint.copy( this.boxData[0].children[0].position);
+        nearPlane.set(normal, -22);
 
-        
-        let rLabelMap = new THREE.TextureLoader().load('resources/minigames/rgb/rgb-r.png');
-        rLabelMap.magFilter = THREE.NearestFilter;
-        rLabelMap.repeat.set(1/2, 1);
-        let rLabelMat = new THREE.SpriteMaterial({map: rLabelMap});
-        let rSprite = new THREE.Sprite(rLabelMat);
-        rSprite.scale.set(2,2,2);
-        let gLabelMap = new THREE.TextureLoader().load('resources/minigames/rgb/rgb-g.png');
-        gLabelMap.magFilter = THREE.NearestFilter;
-        gLabelMap.repeat.set(1/2, 1);
-        let gLabelMat = new THREE.SpriteMaterial({map: gLabelMap});
-        let gSprite = new THREE.Sprite(gLabelMat);
-        gSprite.scale.set(2,2,2);
-        let bLabelMap = new THREE.TextureLoader().load('resources/minigames/rgb/rgb-b.png');
-        bLabelMap.magFilter = THREE.NearestFilter;
-        bLabelMap.repeat.set(1/2, 1);
-        let bLabelMat = new THREE.SpriteMaterial({map: bLabelMap});
-        let bSprite = new THREE.Sprite(bLabelMat);
-        bSprite.scale.set(2,2,2);
-        this.objects.add(rSprite, gSprite, bSprite);
+        // let planeHelper = new THREE.PlaneHelper(nearPlane, 1000);
+        // w_Scene.add(planeHelper);
+        // let planeHelper2 = new THREE.PlaneHelper(farPlane, 1000, 0x0000ee);
+        // w_Scene.add(planeHelper2);
 
-        this.graphLabels = {
-            spriteIndex: 0,
-            spriteCount: 2,
-            rMap: rLabelMap,
-            rLabel: rSprite,
-            gMap: gLabelMap,
-            gLabel: gSprite,
-            bMap: bLabelMap,
-            bLabel: bSprite
-        };
+        let planeMaterial = gameManager.world.planeMaterial.clone();
+        let nearMarker = new THREE.Mesh(gameManager.world.planeGeometry, planeMaterial);
+        nearMarker.material = nearMarker.material.clone();
+        nearMarker.material.color = new THREE.Color(0xf1d960)
+        nearMarker.scale.set(1, .05, .05)
+        nearMarker.position.set(0, -gameManager.world.boxSize/2+.08, -1);
+        nearMarker.rotateX(Math.PI/2);
 
-        let rgbDotTex = new THREE.TextureLoader().load('resources/minigames/rgb/rgb-dot.png');
-        rgbDotTex.magFilter = THREE.NearestFilter;
-        rgbDotTex.repeat.set(1/2, 1);
-        let dotMat = new THREE.SpriteMaterial({map: rgbDotTex});
-        let rgbDot = new THREE.Sprite(dotMat);
-        rgbDot.scale.set(1.5,1.5,1.5);
-        this.rgbDot = {
-            map: rgbDotTex,
-            sprite: rgbDot,
-            positions: [
-                [-1.1,-.2],
-                [-4.3,-3.3],
-                [4.5,-.2],
-                [-1.1,4.7],
-                [2,-3.5],
-                [4.5,4.7],
-                [-4.5,1.8],
-                [2,1.8]
-            ],
-        }
+        let farMarker = nearMarker.clone();
+        farMarker.material = farMarker.material.clone();
+        farMarker.material.color = new THREE.Color(0x4581e1);
+        farMarker.position.set(0, -gameManager.world.boxSize/2+.05, -1);
 
-        this.buttons = gameManager.generalAssets.button;
-        this.button1 = this.buttons.sprite.clone();
-        this.button1.material = this.buttons.sprite.material.clone();
-        this.button1.position.set(-7, -7, 5);
-        this.button2 = this.buttons.sprite.clone();
-        this.button2.material = this.buttons.sprite.material.clone();
-        this.button2.position.set(0, -7, 5);
-        this.button3 = this.buttons.sprite.clone();
-        this.button3.material = this.buttons.sprite.material.clone();
-        this.button3.position.set(7, -7, 5);
-        this.buttonOptions = [this.button1, this.button2, this.button3];
-        this.objects.add(this.button1, this.button2, this.button3);
+        this.objects.add(nearMarker, farMarker);
 
-        // GENERATE ANSWER TEXTS
-        let answer1Map = new THREE.TextureLoader().load('resources/minigames/rgb/color-names.png');
-        answer1Map.magFilter = THREE.NearestFilter;
-        answer1Map.repeat.set(1/8, 1);
-        let answer1Mat = new THREE.SpriteMaterial({map: answer1Map});
-        let answer1Sprite = new THREE.Sprite(answer1Mat);
-        answer1Sprite.scale.set(3,1.5,1.5);
-        answer1Sprite.position.set(-6.5, -6.5, 6)
-        let answer2Map = new THREE.TextureLoader().load('resources/minigames/rgb/color-names.png');
-        answer2Map.magFilter = THREE.NearestFilter;
-        answer2Map.repeat.set(1/8, 1);
-        let answer2Mat = new THREE.SpriteMaterial({map: answer2Map});
-        let answer2Sprite = new THREE.Sprite(answer2Mat);
-        answer2Sprite.scale.set(3,1.5,1.5);
-        answer2Sprite.position.set(0, -6.5, 6)
-        let answer3Map = new THREE.TextureLoader().load('resources/minigames/rgb/color-names.png');
-        answer3Map.magFilter = THREE.NearestFilter;
-        answer3Map.repeat.set(1/8, 1);
-        let answer3Mat = new THREE.SpriteMaterial({map: answer3Map});
-        let answer3Sprite = new THREE.Sprite(answer3Mat);
-        answer3Sprite.scale.set(3,1.5,1.5);
-        answer3Sprite.position.set(6.5, -6.5, 6)
-        this.answersText = [
-            [answer1Map, answer1Sprite],
-            [answer2Map, answer2Sprite],
-            [answer3Map, answer3Sprite],
+        this.adjustmentPlanes = [
             [
-                [[0, 0, 1], 0],
-                [[0, 1, 1], 1],
-                [[0, 0, 0], 2],
-                [[0, 1, 0], 3],
-                [[1, 0, 0], 4],
-                [[1, 0, 1], 5],
-                [[1, 1, 1], 6],
-                [[1, 1, 0], 7]
+                nearPlane,
+                farPlane
             ],
-            
+            [
+                nearPlane.constant, // default value
+                farPlane.constant
+            ],
+            [
+                nearMarker,
+                farMarker
+            ],
+            [
+                nearMarker.position.z,
+                farMarker.position.z
+            ]
         ]
 
-    
+        let sliderMap = new THREE.TextureLoader().load('resources/minigames/NearFar/slider.png');
+        sliderMap.magFilter = THREE.NearestFilter;
+        sliderMap.repeat.set(1/2, 1);
+        let sliderMat = new THREE.SpriteMaterial({map: sliderMap});
+        let nearSliderSprite = new THREE.Sprite(sliderMat);
+        nearSliderSprite.scale.set(10, 2.5, 0);
+        nearSliderSprite.material.rotation = Math.PI/2
+        nearSliderSprite.position.set(6.5, 0, 7)
+        let farSliderSprite = nearSliderSprite.clone();
+        farSliderSprite.translateX(2);
+
+        let buttMap = new THREE.TextureLoader().load('resources/minigames/NearFar/slider_butt.png');
+        buttMap.magFilter = THREE.NearestFilter;
+        buttMap.repeat.set(1/2, 1);
+        let buttMat = new THREE.SpriteMaterial({map: buttMap});
+        let nearButtSprite = new THREE.Sprite(buttMat);
+        nearButtSprite.scale.set(2,2,0);
+        nearButtSprite.position.set(6.5, 0, 7)
+        let farButtSprite = nearButtSprite.clone();
+        farButtSprite.translateX(2);
+
+       
+        let nearButtObject = nearButtSprite.clone();
+        nearButtObject.translateZ(.1);
+        nearButtObject.material = nearButtObject.material.clone();
+        nearButtObject.material.opacity = 0;
+        let farButtObject = nearButtObject.clone();
+        farButtObject.translateX(2);
+
+        this.objects.add(nearSliderSprite, farSliderSprite,  nearButtSprite, farButtSprite, nearButtObject, farButtObject);
+
+        this.sliders = {
+            sliderMap: sliderMap,
+            nearSliderSprite: nearSliderSprite,
+            farSliderSprite: farSliderSprite,
+            buttMap: buttMap,
+            buttons: [
+                [nearButtSprite, farButtSprite],
+                [false, false],
+                [nearButtObject, farButtObject],
+                4.25
+            ],
+            spriteIndex: 0,
+            framesTilSwap: 3
+        }
+
+        var sphereGeometry = new THREE.SphereGeometry(1, 32, 16);
+        var sphereMaterial = new THREE.MeshLambertMaterial({
+            color: 0xf23c0f, clippingPlanes: this.adjustmentPlanes[0],
+            clipIntersection: false,
+        })
+        let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.set(0, 0, 6);
+
+        let ballPool = [sphere];
+
+        for (let i = 0; i < 5; i++) {
+            let ball = sphere.clone();
+            ball.material = ball.material.clone();
+            ball.material.clippingPlanes = this.adjustmentPlanes[0];
+            ball.material.clipIntersection = false;
+            ballPool.push(ball);
+        }
+
+
+        this.ballInfo = {
+            ballPool: ballPool,
+            positionsChosen: [[], [], []],
+            blue: [],
+            red: [],
+            num: 0,
+            blueNum: 0
+        }
+
+        this.winCondition = {
+            time: 0,
+            timeNeeded: 1.0
+        }
+
+        let NFLabelMap = new THREE.TextureLoader().load('resources/minigames/NearFar/NF.png');
+        NFLabelMap.repeat.set(1/2, 1);
+        let NFLabelMat = new THREE.SpriteMaterial({map: NFLabelMap});
+        let NFLabelSprite = new THREE.Sprite(NFLabelMat);
+        NFLabelSprite.scale.set(4,2,0);
+        NFLabelSprite.position.set(7.6, 5.5, 7);
+        this.objects.add(NFLabelSprite);
+
+        this.NFLabel = {
+            map: NFLabelMap,
+            sprite: NFLabelSprite
+        }
 
         this.objects.position.set(this.center.position.x, this.center.position.y, this.center.position.z)
     }
@@ -212,110 +181,130 @@ class NearFarGame extends MiniGame {
     enterScreen() {
         this.screenTimer = 0;
 
-        // GENERATE COLOR BOX
-        shuffleArray(this.colorBox.elementaryColors);
-        let c = this.colorBox.colors;
-        c[1] = this.colorBox.elementaryColors[0];
-        c[2] = this.colorBox.elementaryColors[1];
-        c[3] = this.colorBox.elementaryColors[2];
-        c[4] = [c[1][0] | c[2][0], c[1][1] | c[2][1], c[1][2] | c[2][2]]
-        c[5] = [c[3][0] | c[2][0], c[3][1] | c[2][1], c[3][2] | c[2][2]]
-        c[6] = [c[3][0] | c[1][0], c[3][1] | c[1][1], c[3][2] | c[1][2]]
-        this.colorBox.vertColors = [    c[1][0],c[1][1],c[1][2],    c[0][0],c[0][1],c[0][2],  
-                                        c[6][0],c[6][1],c[6][2],  c[3][0],c[3][1],c[3][2],    
+        // GENERATE BALL DISTRIBUTION
+        let numOfBalls = Math.floor(Math.random()*4)+3;
+        this.ballInfo.num = numOfBalls;
+        let numOfBlueBalls = Math.floor(numOfBalls/2+Math.random()+.5);
+        this.ballInfo.blueNum = numOfBlueBalls;
 
-                                        c[2][0],c[2][1],c[2][2],    c[4][0],c[4][1],c[4][2],  
-                                        c[5][0],c[5][1],c[5][2],  c[7][0],c[7][1],c[7][2],
-                                    
-                                        c[2][0],c[2][1],c[2][2],    c[0][0],c[0][1],c[0][2],  
-                                        c[4][0],c[4][1],c[4][2],  c[1][0],c[1][1],c[1][2],
+        // clear arrays
+        this.ballInfo.positionsChosen[0].length = 0;
+        this.ballInfo.positionsChosen[1].length = 0;
+        this.ballInfo.positionsChosen[2].length = 0;
+        this.ballInfo.blue.length = 0;
+        this.ballInfo.red.length = 0;
 
-                                        c[7][0],c[7][1],c[7][2],    c[6][0],c[6][1],c[6][2],  
-                                        c[5][0],c[5][1],c[5][2],  c[3][0],c[3][1],c[3][2],
+        for (let i = 0; i < numOfBlueBalls; i++) {
+            let ball = this.ballInfo.ballPool[i];
+            ball.material.color = new THREE.Color(0x0f62f2);
+            this.ballInfo.blue.push(ball);
+            // select x position
+            let x = 0;
+            do {
+                x = Math.round(Math.random() * 18 - 9);
+            } while (this.ballInfo.positionsChosen[0].includes(x));
+            this.ballInfo.positionsChosen[0].push(x);
 
-                                        c[4][0],c[4][1],c[4][2],    c[1][0],c[1][1],c[1][2],  
-                                        c[7][0],c[7][1],c[7][2],  c[6][0],c[6][1],c[6][2],
+            let y = 0;
+            do {
+                y = Math.round(Math.random() * 17 - 8);
+            } while (this.ballInfo.positionsChosen[1].includes(y));
+            this.ballInfo.positionsChosen[1].push(y);
 
-                                        c[0][0],c[0][1],c[0][2],    c[2][0],c[2][1],c[2][2],  
-                                        c[3][0],c[3][1],c[3][2],  c[5][0],c[5][1],c[5][2],
-        ];
-        for (let i = 0; i < this.colorBox.colorAttribute.array.length; i++) {
-            this.colorBox.colorAttribute.array[i] = this.colorBox.vertColors[i];
+            let z = 0;
+            do {
+                z = Math.round((Math.random() * 8 - 2)/2)*2;
+            } while (this.ballInfo.positionsChosen[2].includes(z));
+            this.ballInfo.positionsChosen[2].push(z);
+
+            ball.position.set(x,y,z);
+            this.objects.add(ball);
         }
 
-        // ASSIGN LABELS
-        let pTwo = [-6.5, -4, 0]
-        let pThree = [6, -1.7, 0]
-        let pFour = [-2.7, 6, 0]
-        if (c[1][0] == 1) this.graphLabels.rLabel.position.set(pTwo[0],pTwo[1],pTwo[2]);
-        else if (c[2][0] == 1) this.graphLabels.rLabel.position.set(pThree[0],pThree[1],pThree[2]);
-        else this.graphLabels.rLabel.position.set(pFour[0],pFour[1],pFour[2]);
-        if (c[1][1] == 1) this.graphLabels.gLabel.position.set(pTwo[0],pTwo[1],pTwo[2]);
-        else if (c[2][1] == 1) this.graphLabels.gLabel.position.set(pThree[0],pThree[1],pThree[2]);
-        else this.graphLabels.gLabel.position.set(pFour[0],pFour[1],pFour[2]);
-        if (c[1][2] == 1) this.graphLabels.bLabel.position.set(pTwo[0],pTwo[1],pTwo[2]);
-        else if (c[2][2] == 1) this.graphLabels.bLabel.position.set(pThree[0],pThree[1],pThree[2]);
-        else this.graphLabels.bLabel.position.set(pFour[0],pFour[1],pFour[2]);
 
-        // CHOOSE ANSWER + OTHER CHOICES
-        let aNum = Math.floor(Math.random() * 8)
-        let pos = this.rgbDot.positions;
-        let answerTexts = this.answersText[3];
-        let answerOffset = 0;
-        // get sprite offset
-        for (let i = 0; i < answerTexts.length; i++) {
-            if (c[aNum][0] == answerTexts[i][0][0]) {
-                if (c[aNum][1] == answerTexts[i][0][1]) {
-                    if (c[aNum][2] == answerTexts[i][0][2]) {
-                        answerOffset = i;
-                        break;
-                    }
-                }
-            }
+        for (let i = 0; i < numOfBalls-numOfBlueBalls; i++) {
+            let ball = this.ballInfo.ballPool[i+numOfBlueBalls];
+            ball.material.color = new THREE.Color(0xf23c0f);
+            this.ballInfo.red.push(ball);
+             // select x position
+             let x = 0;
+             do {
+                 x = Math.round(Math.random() * 18 - 9);
+             } while (this.ballInfo.positionsChosen[0].includes(x));
+             this.ballInfo.positionsChosen[0].push(x);
+ 
+             let y = 0;
+             do {
+                 y = Math.round(Math.random() * 17 - 8);
+             } while (this.ballInfo.positionsChosen[1].includes(y));
+             this.ballInfo.positionsChosen[1].push(y);
+ 
+             let z = 0;
+             do {
+                 z = Math.round((Math.random() * 16 - 10)/2)*2;
+             } while (this.ballInfo.positionsChosen[2].includes(z) || (z >= Math.min(...this.ballInfo.positionsChosen[2]) && z <= Math.max(...this.ballInfo.positionsChosen[2])));
+             this.ballInfo.positionsChosen[2].push(z);
+ 
+             ball.position.set(x,y,z);
+             this.objects.add(ball);
         }
 
-        this.buttonWithCorrectAnswer = Math.floor(Math.random() * 3);
-
-        let offsetChosen = -1; // placeholder
-        // assign answers to buttons
-        for (let i = 0; i < 3; i++) {
-            if (i == this.buttonWithCorrectAnswer) {
-                this.answersText[i][0].offset.x = answerOffset/8;
-            }
-            else {
-                let offset = 0;
-                do {
-                    offset = Math.floor(Math.random() * 8)
-                } while (offset == offsetChosen || offset == answerOffset)
-                offsetChosen = offset;
-                this.answersText[i][0].offset.x = offset/8
-            }
-        }
-
-        this.rgbDot.sprite.position.set(pos[aNum][0],pos[aNum][1] ,0);
-
-        // DEBUG
+        // CHOOSE NEAR FAR POSITIONS
+        let near = Math.round(Math.random()*9-5);
+        let far = Math.round(Math.random()*6-4);
+        this.adjustmentPlanes[0][0].constant = -22 + near;
+        this.adjustmentPlanes[0][1].constant = 21.5 - far;
+        this.adjustmentPlanes[2][0].position.z = -1 + near;
+        this.adjustmentPlanes[2][1].position.z = -1 + far;
+        this.sliders.buttons[0][0].position.y = -near/2.2;
+        this.sliders.buttons[2][0].position.y = near/2.2;
+        this.sliders.buttons[0][1].position.y = -far/2.2;
+        this.sliders.buttons[2][1].position.y = far/2.2;
 
     }
 
     update() {
         // ### HANDLE SPRITE SHAKE ###
-        if (this.screenFrameCount % this.graph.framesTilSwap == 0) {
-            this.graph.spriteIndex = (this.graph.spriteIndex+1) % this.graph.spriteCount;
-            this.graph.map.offset.x = this.graph.spriteIndex/this.graph.spriteCount;
-
-            this.buttons.spriteIndex = (this.buttons.spriteIndex+1) % this.buttons.spriteCount;
-            this.buttons.map.offset.x = this.buttons.spriteIndex/this.buttons.spriteCount;
-
-            this.graphLabels.spriteIndex = (this.graphLabels.spriteIndex+1) % this.graphLabels.spriteCount;
-            this.graphLabels.rMap.offset.x = this.graphLabels.spriteIndex/this.graphLabels.spriteCount;
-            this.graphLabels.gMap.offset.x = this.graphLabels.spriteIndex/this.graphLabels.spriteCount;
-            this.graphLabels.bMap.offset.x = this.graphLabels.spriteIndex/this.graphLabels.spriteCount;
-
-            this.rgbDot.map.offset.x = this.graphLabels.spriteIndex/this.graphLabels.spriteCount;
+        if (this.screenFrameCount % this.sliders.framesTilSwap == 0) {
+            this.sliders.spriteIndex = (this.sliders.spriteIndex + 1) % 2;
+            this.sliders.sliderMap.offset.x = this.sliders.spriteIndex/2;
+            this.sliders.buttMap.offset.x = this.sliders.spriteIndex/2;
+            this.NFLabel.map.offset.x = this.sliders.spriteIndex/2;
         }
 
-        if (this.colorBox.animate) this.animateBox();
+        if (!gameManager.miniGameRunning) return;
+
+        // ### CHECK WIN CONDITION
+        let nearPos = this.adjustmentPlanes[2][0].position.z-2;
+        let farPos = this.adjustmentPlanes[2][1].position.z-.25;
+
+        let err = 0.2;
+        for (let i = 0; i < this.ballInfo.num; i++) {
+            let ball = this.ballInfo.ballPool[i];
+            if (i < this.ballInfo.blueNum) {
+                if (ball.position.z > nearPos+err || ball.position.z < farPos-err) {
+                    console.log(ball.position.z, nearPos, ball.position.z, farPos)
+                    this.winCondition.time = 0; break;}
+                
+            } else {
+                if (ball.position.z < nearPos && ball.position.z > farPos) {
+                    this.winCondition.time = 0; break;
+                }
+            }
+
+            if (i == this.ballInfo.num-1) { // reached the end
+                this.winCondition.time += g_dt*gameManager.speed.speed;
+                if (this.winCondition.time >= this.winCondition.timeNeeded) {
+                    gameManager.winScreen();
+                    console.log("win");
+                    this.boxData[0].children[0].material.color = this.endAnim.winColor;
+                    setTimeout(() => {
+                        gameManager.readyForNextScreen();
+                    }, this.endAnim.totalTime/gameManager.speed.speed);
+                }
+            }
+        }
+
 
         this.screenTimer += g_dt;
         this.screenFrameCount++;
@@ -324,109 +313,88 @@ class NearFarGame extends MiniGame {
     startGame() {
         document.addEventListener('mousemove', this.handleMouseMove);
         document.addEventListener('mousedown', this.handleMouseDown);
+        document.addEventListener('mouseup', this.handleMouseUp);
         document.dispatchEvent(gameManager.triggerMiniGameEvent);
-        this.objects.add(this.answersText[0][1]);
-        this.objects.add(this.answersText[1][1]);
-        this.objects.add(this.answersText[2][1]);
-        this.objects.add(this.rgbDot.sprite);
-
     }
 
     handleMouseMove(event) {
-        let src = gameManager.minigames[0];
-        hud.pointer.x = (event.clientX / canvas.width) * 2 - 1;
-        hud.pointer.y = -1*((event.clientY / canvas.height) * 2 - 1);
-        hud.mouseRaycaster.setFromCamera(hud.pointer, w_Camera);
-        const intersects = hud.mouseRaycaster.intersectObjects(src.buttonOptions)
-        for (let i = 0; i < src.buttonOptions.length; i++) {
-            src.buttonOptions[i].material.color.set(0xffffff);
-        }
-        for (let i = 0; i < intersects.length; i++) {
-            intersects[i].object.material.color.set(0xa5a5a5);
-        }
+        let src = gameManager.minigames[2];
 
+        // set button positions
+        hud.pointer.x = (event.clientX / canvas.width) * 2 - 1;
+        hud.pointer.y = (event.clientY / canvas.height) * 2 - 1;
+        hud.mouseRaycaster.setFromCamera(hud.pointer, w_Camera);
+        if (src.sliders.buttons[1][0]) {
+            if (src.sliders.buttons[0][0].position.y >= src.sliders.buttons[3] && Math.sign(event.movementY) == -1 ||
+            src.sliders.buttons[0][0].position.y <= -src.sliders.buttons[3] && Math.sign(event.movementY) == 1) {
+                src.sliders.buttons[0][0].position.y = src.sliders.buttons[3] * -Math.sign(event.movementY);
+                src.sliders.buttons[2][0].position.y = src.sliders.buttons[3] * Math.sign(event.movementY);
+                return;
+            }
+            src.sliders.buttons[0][0].position.y -= event.movementY/45;
+            src.sliders.buttons[2][0].position.y += event.movementY/45;
+        } else if (src.sliders.buttons[1][1]) {
+            if (src.sliders.buttons[0][1].position.y >= src.sliders.buttons[3] && Math.sign(event.movementY) == -1 ||
+            src.sliders.buttons[0][1].position.y <= -src.sliders.buttons[3] && Math.sign(event.movementY) == 1) {
+                src.sliders.buttons[0][1].position.y = src.sliders.buttons[3] * -Math.sign(event.movementY);
+                src.sliders.buttons[2][1].position.y = src.sliders.buttons[3] * Math.sign(event.movementY);
+                return;
+            }
+            src.sliders.buttons[0][1].position.y -= event.movementY/45;
+            src.sliders.buttons[2][1].position.y += event.movementY/45;
+        } 
+
+        src.adjustmentPlanes[0][0].constant = src.adjustmentPlanes[1][0] + src.sliders.buttons[2][0].position.y*2.2
+        src.adjustmentPlanes[0][1].constant = src.adjustmentPlanes[1][1] - src.sliders.buttons[2][1].position.y*2.2
+
+        src.adjustmentPlanes[2][0].position.z = src.adjustmentPlanes[3][0] + src.sliders.buttons[2][0].position.y*2.2
+        src.adjustmentPlanes[2][1].position.z = src.adjustmentPlanes[3][1] + src.sliders.buttons[2][1].position.y*2.2
     }
 
     handleMouseDown() {
-        let src = gameManager.minigames[0];
+        let src = gameManager.minigames[2];
         hud.mouseRaycaster.setFromCamera(hud.pointer, w_Camera);
-        const intersects = hud.mouseRaycaster.intersectObjects(src.buttonOptions)
+        const intersects = hud.mouseRaycaster.intersectObjects(src.sliders.buttons[2])
+        src.sliders.buttons[1][0] = false;
+        src.sliders.buttons[1][1] = false;
         if (intersects.length > 0) {
-            if (intersects[0].object == src.buttonOptions[src.buttonWithCorrectAnswer]) {
-                console.log("correct");
-                gameManager.winScreen();
-                setTimeout(() => {
-                    gameManager.readyForNextScreen();
-                }, 250);
-            } else {
-                gameManager.loseScreen();  
+            if (intersects[0].object == src.sliders.buttons[2][0]) {
+                src.sliders.buttons[1][0] = true;
+            } else if (intersects[0].object == src.sliders.buttons[2][1]) {
+                src.sliders.buttons[1][1] = true;
             }
-            src.handleColorBox();      
         }
     }
 
+    handleMouseUp() {
+        let src = gameManager.minigames[2];
+        src.sliders.buttons[1][0] = false;
+        src.sliders.buttons[1][1] = false;
+    }
+
     loseScreen() {
-        console.log("incorrect");
         setTimeout(() => {
             gameManager.restartBackToMain();
         }, 1500);
         document.removeEventListener('mousemove', this.handleMouseMove);
         document.removeEventListener('mousedown', this.handleMouseDown);
+        document.removeEventListener('mouseup', this.handleMouseUp);
+        this.boxData[0].children[0].material.color = this.endAnim.loseColor;
     }
 
-    handleColorBox() {
-        this.objects.add(this.colorBox.mesh);
-        this.colorBox.time = 0;
-        this.colorBox.mesh.material.opacity = 0;
-        this.colorBox.animate = true;
-    }
-    animateBox() {
-
-        this.colorBox.mesh.material.opacity += g_dt*3.5;
-
-        if (!gameManager.gameRunning) {
-            let amt = 0;
-            let rot = -.18;
-            amt = Math.sin(this.colorBox.time * 5) * .3
-            this.colorBox.mesh.translateY(amt);
-            this.colorBox.mesh.rotateY(rot);
-        }
-        
-
-        this.colorBox.time += g_dt;
-        if (this.colorBox.time >= 2) {
-            this.colorBox.animate = false;
-        }
-    }
 
     exitScreen() {
+        this.sliders.buttons[1][0] = false;
+        this.sliders.buttons[1][1] = false;
         document.removeEventListener('mousemove', this.handleMouseMove);
         document.removeEventListener('mousedown', this.handleMouseDown);
-        document.addEventListener(("OnCameraDone"), this.clear )
+        document.removeEventListener('mouseup', this.handleMouseUp);
+        document.addEventListener(("OnCameraDone"), this.clear );
     }
 
     clear() {
-        let src = gameManager.minigames[0];
-        src.objects.remove(src.colorBox.mesh);
-        src.objects.remove(src.answersText[0][1]);
-        src.objects.remove(src.answersText[1][1]);
-        src.objects.remove(src.answersText[2][1]);
-        src.objects.remove(src.rgbDot.sprite);
-        src.colorBox.mesh.rotation.set(0.3687053205511489, -0.26934274716997353, -3.0679499892181967)
-        src.colorBox.mesh.position.set(.2, .7, 5);
-        src.objects.remove(src.colorBox.mesh);
+        let src = gameManager.minigames[2];
+        src.boxData[0].children[0].material.color = src.boxData[2];
         document.removeEventListener(("OnCameraDone"), src.clear)
-        for (let i = 0; i < src.buttonOptions.length; i++) {
-            src.buttonOptions[i].material.color.set(0xffffff);
-        }
-    }
-}
-
-function shuffleArray(array) {
-    for (var i = array.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
     }
 }

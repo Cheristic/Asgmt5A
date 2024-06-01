@@ -9,34 +9,80 @@ class MiniGame {
 
     }
 
+    onReady() {}
+
     buildScreen() {
+        this.boxData = gameManager.world.buildBox(0xeb537d, this.center.position)
+
+        this.objects = new THREE.Group();
+        w_Scene.add(this.objects);
+
+        var boxIlluminator = new THREE.PointLight(0xffffff, 100, 50);
+        boxIlluminator.position.set(0, 0, 12);
+        this.objects.add(boxIlluminator);
+
+        var light2 = new THREE.SpotLight(0xffffff, 10, 30, Math.PI, .05, .8);
+        const lightTarget = new THREE.Object3D();
+        lightTarget.position.set(0, 10, 0);
+        this.objects.add(lightTarget);
+        light2.target = lightTarget;
+        light2.position.set(0, 9, 0)
+        light2.castShadow = true;
+        this.objects.add(light2);
+    
         
+    
+
+    
+
+        this.objects.position.set(this.center.position.x, this.center.position.y, this.center.position.z)
     }
 
-    // reset/prepare screen
     enterScreen() {
+        this.screenTimer = 0;
+        this.screenFrameCount = 0;
 
     }
-  
-    update() {
 
+    update() {
+        // ### HANDLE SPRITE SHAKE ###
+        this.screenTimer += g_dt;
+        this.screenFrameCount++;
     }
 
     startGame() {
+        document.addEventListener('mousemove', this.handleMouseMove);
+        document.addEventListener('mousedown', this.handleMouseDown);
+        document.dispatchEvent(gameManager.triggerMiniGameEvent);
+    }
+
+    handleMouseMove(event) {
+        let src = gameManager.minigames[0];
 
     }
 
+    handleMouseDown() {
+        let src = gameManager.minigames[0];
+    }
 
     loseScreen() {
-        
+        setTimeout(() => {
+            gameManager.restartBackToMain();
+        }, 1500);
+        document.removeEventListener('mousemove', this.handleMouseMove);
+        document.removeEventListener('mousedown', this.handleMouseDown);
     }
 
+
     exitScreen() {
-        
+        document.removeEventListener('mousemove', this.handleMouseMove);
+        document.removeEventListener('mousedown', this.handleMouseDown);
+        document.addEventListener(("OnCameraDone"), this.clear )
     }
 
     clear() {
-
+        let src = gameManager.minigames[0];
+        document.removeEventListener(("OnCameraDone"), src.clear)
     }
 
 }
@@ -72,7 +118,10 @@ Graphic underneath with - ----> + like a volume ramping up thing to show depth.
 ~3 balls are put into view, some red, some blue and the goal is to only have red viewable by adjusting planes.
 I'll have to make sliders and probably choose premade spawning locations.
 
-5)
+5) Child rotations
+"Match!"
+On the left is a 3+ connected limb model with "Goal" text and on the right is the same one but rotated wrong.
+CLick on each limb on right to rotate by 90 degrees until it matches the left.
 
 6)
 */

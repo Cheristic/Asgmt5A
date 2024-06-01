@@ -1,17 +1,23 @@
 class RGB extends MiniGame {
     constructor(camPos, center, index) {
-        super(camPos, center, index, "What's at the dot?", 8);
+        super(camPos, center, index, "Choose the color!", 8);
         this.screenTimer = 0;
         this.screenFrameCount = 0;
+
+        this.endAnim = {
+            totalTime: 1000,
+            loseColor: new THREE.Color(0xcd2d14),
+            winColor: new THREE.Color(0x2fb117),
+        }
     }
 
     buildScreen() {
-        this.boxData = gameManager.world.buildBox(0xAAEE22, this.center.position)
+        this.boxData = gameManager.world.buildBox(0xbff14d, this.center.position)
 
         this.objects = new THREE.Group();
         w_Scene.add(this.objects);
 
-        var boxIlluminator = new THREE.PointLight(0xffffff, 100, 50);
+        var boxIlluminator = new THREE.PointLight(0xffffff, 200, 50);
         boxIlluminator.position.set(0, 0, 12);
         this.objects.add(boxIlluminator);
 
@@ -355,9 +361,10 @@ class RGB extends MiniGame {
             if (intersects[0].object == src.buttonOptions[src.buttonWithCorrectAnswer]) {
                 console.log("correct");
                 gameManager.winScreen();
+                src.boxData[0].children[0].material.color = src.endAnim.winColor;
                 setTimeout(() => {
                     gameManager.readyForNextScreen();
-                }, 250);
+                }, src.endAnim.totalTime/gameManager.speed.speed);
             } else {
                 gameManager.loseScreen();  
             }
@@ -366,12 +373,13 @@ class RGB extends MiniGame {
     }
 
     loseScreen() {
-        console.log("incorrect");
         setTimeout(() => {
             gameManager.restartBackToMain();
         }, 1500);
         document.removeEventListener('mousemove', this.handleMouseMove);
         document.removeEventListener('mousedown', this.handleMouseDown);
+        this.boxData[0].children[0].material.color = this.endAnim.loseColor;
+
     }
 
     handleColorBox() {
@@ -382,7 +390,7 @@ class RGB extends MiniGame {
     }
     animateBox() {
 
-        this.colorBox.mesh.material.opacity += g_dt*3.5;
+        this.colorBox.mesh.material.opacity += g_dt*3.5*gameManager.speed.speed;
 
         if (!gameManager.gameRunning) {
             let amt = 0;
@@ -393,7 +401,7 @@ class RGB extends MiniGame {
         }
         
 
-        this.colorBox.time += g_dt;
+        this.colorBox.time += g_dt*gameManager.speed.speed;
         if (this.colorBox.time >= 2) {
             this.colorBox.animate = false;
         }
@@ -407,14 +415,17 @@ class RGB extends MiniGame {
 
     clear() {
         let src = gameManager.minigames[0];
+        src.colorBox.mesh.rotation.set(0.3687053205511489, -0.26934274716997353, -3.0679499892181967)
+        src.colorBox.mesh.position.set(.2, .7, 5);
+        src.colorBox.time = 0;
+        src.colorBox.mesh.material.opacity = 0;
         src.objects.remove(src.colorBox.mesh);
         src.objects.remove(src.answersText[0][1]);
         src.objects.remove(src.answersText[1][1]);
         src.objects.remove(src.answersText[2][1]);
         src.objects.remove(src.rgbDot.sprite);
-        src.colorBox.mesh.rotation.set(0.3687053205511489, -0.26934274716997353, -3.0679499892181967)
-        src.colorBox.mesh.position.set(.2, .7, 5);
-        src.objects.remove(src.colorBox.mesh);
+        
+        src.boxData[0].children[0].material.color = src.boxData[2];
         document.removeEventListener(("OnCameraDone"), src.clear)
         for (let i = 0; i < src.buttonOptions.length; i++) {
             src.buttonOptions[i].material.color.set(0xffffff);

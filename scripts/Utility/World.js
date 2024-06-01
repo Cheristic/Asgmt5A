@@ -37,27 +37,23 @@ class World {
 
             let p0 = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
             p0.position.set(pos.x, pos.y,-this.boxSize*.5+pos.z);
-            p0.material.color.setHex(color);
+            p0.material.color = new THREE.Color(color)
             p0.rotateY(Math.PI);
 
             let p1 = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
             p1.position.set(this.boxSize*.5+pos.x, pos.y, pos.z);
-            p1.material.color.setHex(color);
             p1.rotateY(Math.PI/2);
 
             let p2 = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
             p2.position.set(-this.boxSize*.5+pos.x, pos.y, pos.z);
-            p2.material.color.setHex(color);
             p2.rotateY(Math.PI/2);
 
             let p3 = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
             p3.position.set(pos.x, this.boxSize*.5+pos.y, pos.z);
-            p3.material.color.setHex(color);
             p3.rotateX(Math.PI/2);
 
             let p4 = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
             p4.position.set(pos.x, -this.boxSize*.5+pos.y, pos.z);
-            p4.material.color.setHex(color);
             p4.rotateX(Math.PI/2);
 
             this.boxPlaneTemplate.add(p0, p1, p2, p3, p4);
@@ -82,7 +78,7 @@ class World {
             let pl5 = new THREE.Plane();
             normal.set(0,0,1).applyQuaternion( p0.quaternion);
             coPoint.copy( p0.position);
-            pl5.set(normal, this.boxSize/2);
+            pl5.set(normal, coPoint);
 
             let pl1 = new THREE.Plane();
             normal.set(0,0,-1).applyQuaternion( p1.quaternion);
@@ -108,7 +104,8 @@ class World {
         else {
             let box = this.boxPlaneTemplate.clone();
             let mat = box.children[0].material.clone();
-            mat.color.setHex(color);
+            mat.color = new THREE.Color(color);
+
             box.children[0].position.set(pos.x, pos.y,-this.boxSize*.5+pos.z);
             box.children[0].material = mat;
 
@@ -136,7 +133,7 @@ class World {
             let pl5 = new THREE.Plane();
             normal.set(0,0,1).applyQuaternion( box.children[0].quaternion);
             coPoint.copy( box.children[0].position);
-            pl5.set(normal, this.boxSize/2);
+            pl5.set(normal, coPoint);
 
             let pl1 = new THREE.Plane();
             normal.set(0,0,-1).applyQuaternion( box.children[1].quaternion);
@@ -157,7 +154,7 @@ class World {
             normal.set(0,0,-1).applyQuaternion( box.children[4].quaternion);
             coPoint.copy( box.children[4].position);
             pl4.setFromNormalAndCoplanarPoint(normal, coPoint);
-            return [box, [pl0, pl1, pl2, pl3, pl4, pl5]];
+            return [box, [pl0, pl1, pl2, pl3, pl4, pl5], mat.color];
         }
     }
 }

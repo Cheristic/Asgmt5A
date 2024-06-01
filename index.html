@@ -4,7 +4,12 @@
         <meta charset="utf-8" />
         <title>160-Ware</title>
         <style>
-            body {text-align:left;}
+            body {
+                text-align:left;
+                background-image: url('/resources/160-wario-Background-dark.jpg');
+                background-repeat: repeat;
+                background-size: 50px;
+            }
             h2 {
                 padding: 0;
                 margin: 1;
@@ -13,15 +18,17 @@
                 tab-size: 12;
             }
             .wrapper {
-                position: relative;
-                width: 640px;
-                height: 480px;
+                width: 100%;
             }
 
             .wrapper canvas {
                 position: absolute;
-                top: 0;
-                left: 0;
+                margin: auto;
+            }
+            .logo {
+                margin-top: 800px;
+                margin-left: 180px;
+                position:absolute;
             }
         </style>
     </head>
@@ -32,6 +39,7 @@
             </canvas>
             <canvas id="ui" width="800" height="800">
             </canvas>
+            
         </div>
         <script src="lib/webgl-utils.js"></script>
         <script src="lib/webgl-debug.js"></script>
@@ -44,6 +52,7 @@
               "imports": {
                 "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
                 "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.0/examples/jsm/"
+                
               }
             }
         </script>
@@ -53,9 +62,13 @@
         <script src="scripts/Utility/HUDManger.js"></script>
         <script src="scripts/Utility/Camera.js"></script>
         <script src="scripts/Utility/World.js"></script>
+        <script src="scripts/Utility/AudioManager.js"></script>
         <script src="scripts/MiniGames/MiniGame.js"></script>
         <script src="scripts/MiniGames/RGBGame.js"></script>
         <script src="scripts/MiniGames/NearFarGame.js"></script>
+        <script src="scripts/MiniGames/LectureGame.js"></script>
+        <script src="scripts/MiniGames/UVGame.js"></script>
+        <script src="scripts/MiniGames/GradeGame.js"></script>
         <script src="scripts/MiniGames/Test2.js"></script>
         <script src="asg5.js"></script>  
         <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19"></script>
@@ -66,10 +79,18 @@
             import { FontLoader } from 'three/addons/loaders/FontLoader.js';
             import boxVertex from '../../shaders/boxvertex.js';
             import boxFragment from '../../shaders/boxfragment.js';
+            import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
+            import {OBJLoader} from 'three/addons/loaders/OBJLoader.js';
+            import {MTLLoader} from 'three/addons/loaders/MTLLoader.js';
+            import TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/23.1.2/tween.esm.js';
 
-            main(THREE, TextGeometry, FontLoader, boxVertex, boxFragment, TextSprite);
+            main(THREE, TextGeometry, FontLoader, boxVertex, boxFragment, SimplifyModifier, OBJLoader, MTLLoader, TWEEN);
         </script>
 
+        <div class="logo">
+            <img src="/resources/logo.png">
+        </div>
+        
 
 
     </body>

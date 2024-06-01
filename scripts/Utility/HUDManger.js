@@ -156,7 +156,7 @@ class HUDManager {
             this.timer.fade.elapsedTime += g_dt;
         }
         if (gameManager.miniGameRunning) { // LOWER TIMER AND CHECK FOR LOSS
-            this.timer.currTime += g_dt;
+            this.timer.currTime += g_dt*gameManager.speed.speed;
             if (this.timer.currTime/this.timer.totalMiniGameTime >= (1-this.timer.timeCropChunks[this.timer.currTimeChunk+1]) &&
              this.timer.currTimeChunk < this.timer.timeCropChunks.length-1) {  
 

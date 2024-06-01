@@ -3,27 +3,33 @@ let canvas, hud, renderer;
 // ##################
 
 // ## SCENE VARIABLES ##
-let w_Camera, w_Scene, gameManager;
+let w_Camera, w_Scene, gameManager, audioManager;
 // ##################
 
 let THREE;
 let TextGeometry;
 let FontLoader;
 let GUI;
-let TextSprite;
+let SimplifyModifier;
+let OBJLoader;
+let MTLLoader
+let TWEEN;
 
 let boxVertex;
 let boxFragment;
 
 
-function main(three, textgeo, fontload, bVert, bFrag, txtSpr) {
+function main(three, textgeo, fontload, bVert, bFrag, simp, obj, mtl, tween) {
   THREE = three;
   TextGeometry = textgeo;
   FontLoader = fontload;
   GUI = lil.GUI;
   boxVertex = bVert;
   boxFragment = bFrag;
-  TextSprite = txtSpr;
+  SimplifyModifier = simp;
+  OBJLoader = obj;
+  MTLLoader = mtl;
+  TWEEN = tween;
   setUpWebGL();
   setUpScene();
   
@@ -51,8 +57,10 @@ function setUpScene() {
   gameManager = new GameManager();
   gameManager.buildScreens();
 
+  audioManager = new AudioManager();
+
   hud = new HUDManager();
-  
+
   gameManager.startScene();
 }
 

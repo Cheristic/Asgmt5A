@@ -20,7 +20,7 @@ class Camera {
     update() {
         if (this.isLerping) {
             if (this.elapsedTime < this.lerpTime) {
-                this.elapsedTime += g_dt;
+                this.elapsedTime += g_dt*gameManager.speed.speed;
                 let t = this.elapsedTime/this.lerpTime;
                 let easeIn = t*t
                 let easeOut = 1-(1-t)*(1-t)*1.5;

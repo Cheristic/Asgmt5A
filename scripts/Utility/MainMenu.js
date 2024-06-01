@@ -2,7 +2,8 @@ class MainMenu {
     constructor(camPos, center) {
         this.camPos = camPos;
         this.center = new THREE.Object3D();
-        this.center.position.set(center[0], center[1], center[2]);      
+        this.center.position.set(center[0], center[1], center[2]);   
+        
     }
 
     buildMainMenu() {
@@ -25,15 +26,19 @@ class MainMenu {
         light2.shadow.mapSize.height = 8182;
         w_Scene.add(light2);
 
+        this.clickToStart = null;
+        this.titleText = null;
+
         const fontLoader = new FontLoader();
     
         fontLoader.load('resources/fonts/helvetiker_bold.typeface.json', function(f) {
-            const clickToStart = new TextGeometry("click to start", {
+            let clickToStart = new TextGeometry("click to start", {
                 font: f,
                 size: 2,
-                depth: 18
+                depth: 15
             });
-            const title = new TextGeometry("160 - WARE", {
+
+            let title = new TextGeometry("160 - WARE", {
                 font: f,
                 size: 2,
                 depth: 3
@@ -77,7 +82,7 @@ class MainMenu {
             var textMaterial = new THREE.MeshPhongMaterial( 
                 { color: 0x6361be, specular: 0x5590b4, shininess: 30, emissive: 0x1a1a1a, 
                     clippingPlanes: gameManager.MainMenu.boxData[1],
-                    clipIntersection: false,
+                    clipIntersection: false, flatShading: true
                 }
             );
 
@@ -86,18 +91,20 @@ class MainMenu {
             gameManager.MainMenu.clickToStart.position.set(-8, -1, -10);
             gameManager.MainMenu.clickToStart.castShadow = true;
             gameManager.MainMenu.clickToStart.receiveShadow = true;
+
             w_Scene.add(gameManager.MainMenu.clickToStart);
             
             
             var titleMaterial = new THREE.MeshPhongMaterial( 
                 { color: 0xc2a3e7, specular: 0x5590b4, shininess: 15, emissive: 0x1a1a1a, 
-                    clippingPlanes: gameManager.MainMenu.boxData[1], clipIntersection: false,
+                    clippingPlanes: gameManager.MainMenu.boxData[1], clipIntersection: false, flatShading: true
                 }
             );
             gameManager.MainMenu.titleText = new THREE.Mesh( title, titleMaterial );
             gameManager.MainMenu.titleText.position.set(-8, 4, -10);
             gameManager.MainMenu.titleText.castShadow = true;
             gameManager.MainMenu.titleText.receiveShadow = true;
+            
             w_Scene.add(gameManager.MainMenu.titleText);
 
             
@@ -105,48 +112,62 @@ class MainMenu {
     }
 
     enterScreen() {
-        console.log("returning to main");
         document.addEventListener(("OnCameraDone"), this.onReady )
         gameManager.MainMenu.clickToStart.material.color.set(0x6361be)
     }
 
     onReady() {
-        console.log("at main");
-        document.addEventListener('mousemove', gameManager.MainMenu.handleMouseMove);
-        document.addEventListener('mousedown', gameManager.MainMenu.handleMouseDown)
-        document.removeEventListener(("OnCameraDone"), gameManager.MainMenu.onReady )
+        let src = gameManager.MainMenu
+        if (src.clickToStart != null) {
+            w_Scene.add(src.clickToStart);
+            w_Scene.add(src.titleText);
+        }
+        document.addEventListener('mousemove', src.handleMouseMove);
+        document.addEventListener('mousedown', src.handleMouseDown)
+        document.removeEventListener(("OnCameraDone"), src.onReady )
     }
 
     handleMouseMove(event) {
-        if (gameManager.MainMenu.clickToStart == null) return;
+        let src = gameManager.MainMenu
+        if (src.clickToStart == null) return;
 
         hud.pointer.x = (event.clientX / canvas.width) * 2 - 1;
         hud.pointer.y = (event.clientY / canvas.height) * 2 - 1;
         hud.mouseRaycaster.setFromCamera(hud.pointer, w_Camera);
-        const intersects = hud.mouseRaycaster.intersectObject(gameManager.MainMenu.clickToStart)
+        const intersects = hud.mouseRaycaster.intersectObject(src.clickToStart)
         if (intersects.length > 0) 
         {
-            gameManager.MainMenu.clickToStart.material.color.set(0x339e8f)
+            src.clickToStart.material.color.set(0x339e8f)
         } else {
-            gameManager.MainMenu.clickToStart.material.color.set(0x6361be)
+            src.clickToStart.material.color.set(0x6361be)
         }
     }
 
     handleMouseDown() {
+        let src = gameManager.MainMenu
+
         hud.mouseRaycaster.setFromCamera(hud.pointer, w_Camera);
-        const intersects = hud.mouseRaycaster.intersectObject(gameManager.MainMenu.clickToStart)
+        const intersects = hud.mouseRaycaster.intersectObject(src.clickToStart)
         if (intersects.length > 0) {
             gameManager.startGame();
+            w_Scene.remove(src.clickToStart);
+            w_Scene.remove(src.titleText);
         }
     }
 
     exitScreen() {
         document.removeEventListener('mousemove', gameManager.MainMenu.handleMouseMove);
         document.removeEventListener('mousedown', gameManager.MainMenu.handleMouseDown);
-        
+        document.addEventListener(("OnCameraDone"), this.clear )
     }
 
     update() {
 
+    }
+
+    clear() {
+        let src = gameManager.MainMenu
+        
+        document.removeEventListener(("OnCameraDone"), src.clear)
     }
 }

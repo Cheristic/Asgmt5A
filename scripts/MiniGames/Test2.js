@@ -33,8 +33,21 @@ class Test2 extends MiniGame {
     }
 
     enterScreen() {
+        this.screenTimer = 0;
+        this.screenFrameCount = 0;
+
+    }
+
+    update() {
+        // ### HANDLE SPRITE SHAKE ###
+        this.screenTimer += g_dt;
+        this.screenFrameCount++;
+    }
+
+    startGame() {
         document.addEventListener('mousemove', this.handleMouseMove);
-        document.addEventListener('mousedown', this.handleMouseDown)
+        document.addEventListener('mousedown', this.handleMouseDown);
+        document.dispatchEvent(gameManager.triggerMiniGameEvent);
     }
 
     handleMouseMove(event) {
@@ -61,6 +74,9 @@ class Test2 extends MiniGame {
     }
 
     loseScreen() {
+        setTimeout(() => {
+            gameManager.restartBackToMain();
+        }, 1500);
         document.removeEventListener('mousemove', this.handleMouseMove);
         document.removeEventListener('mousedown', this.handleMouseDown);
     }
@@ -68,5 +84,11 @@ class Test2 extends MiniGame {
     exitScreen() {
         document.removeEventListener('mousemove', this.handleMouseMove);
         document.removeEventListener('mousedown', this.handleMouseDown);
+        document.addEventListener(("OnCameraDone"), this.clear )
+    }
+
+    clear() {
+        let src = gameManager.minigames[0];
+        document.removeEventListener(("OnCameraDone"), src.clear)
     }
 }
