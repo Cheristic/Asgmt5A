@@ -1,6 +1,6 @@
 class GradeGame extends MiniGame {
     constructor(camPos, center, index) {
-        super(camPos, center, index, "Shake!", 10);
+        super(camPos, center, index, "Shake!", 6);
         this.screenFrameCount = 0;
         this.screenTimer = 0;
 

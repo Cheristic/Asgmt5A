@@ -76,7 +76,7 @@ class RGB extends MiniGame {
         this.colorBox.colorAttribute = this.colorBox.colorBoxGeo.getAttribute('color');
         this.colorBox.colorAttribute.needsUpdate = true;
         let colorBoxMat = new THREE.MeshBasicMaterial({vertexColors: true, clippingPlanes: this.boxData[1],
-            clipIntersection: false, transparent: true});
+            clipIntersection: false, transparent: true, opacity: 0});
         this.colorBox.mesh = new THREE.Mesh(this.colorBox.colorBoxGeo, colorBoxMat);
         
         this.colorBox.mesh.rotateZ(Math.PI);
@@ -86,6 +86,7 @@ class RGB extends MiniGame {
         this.colorBox.mesh.applyMatrix4(distort)  
         this.colorBox.mesh.rotateY(-.1);
         this.colorBox.mesh.position.set(.2, .7, 5)
+        this.objects.add(this.colorBox.mesh);
         
         // ###############
 
@@ -217,6 +218,7 @@ class RGB extends MiniGame {
 
     enterScreen() {
         this.screenTimer = 0;
+        this.screenFrameCount = 0;
 
         // GENERATE COLOR BOX
         shuffleArray(this.colorBox.elementaryColors);
@@ -248,6 +250,9 @@ class RGB extends MiniGame {
         for (let i = 0; i < this.colorBox.colorAttribute.array.length; i++) {
             this.colorBox.colorAttribute.array[i] = this.colorBox.vertColors[i];
         }
+        this.colorBox.colorAttribute.needsUpdate = true;
+        this.colorBox.mesh.material.opacity = 0;
+        this.colorBox.animate = false;
 
         // ASSIGN LABELS
         let pTwo = [-6.5, -4, 0]
@@ -383,7 +388,7 @@ class RGB extends MiniGame {
     }
 
     handleColorBox() {
-        this.objects.add(this.colorBox.mesh);
+        
         this.colorBox.time = 0;
         this.colorBox.mesh.material.opacity = 0;
         this.colorBox.animate = true;
@@ -419,7 +424,8 @@ class RGB extends MiniGame {
         src.colorBox.mesh.position.set(.2, .7, 5);
         src.colorBox.time = 0;
         src.colorBox.mesh.material.opacity = 0;
-        src.objects.remove(src.colorBox.mesh);
+        src.colorBox.animate = false;
+        //src.objects.remove(src.colorBox.mesh);
         src.objects.remove(src.answersText[0][1]);
         src.objects.remove(src.answersText[1][1]);
         src.objects.remove(src.answersText[2][1]);
